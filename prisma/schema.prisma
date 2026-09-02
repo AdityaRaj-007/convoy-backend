@@ -13,35 +13,35 @@ datasource db {
 }
 
 model User {
-  id String @id @default(uuid())
-  phoneNumber String @unique
-  name String
-  member RideMembership[]
-  rides Ride[]
-  createdAt DateTime
-  updatedAt DateTime
+  id           String           @id @default(uuid())
+  phoneNumber  String           @unique
+  name         String
+  memberships  RideMembership[]
+  createdRides Ride[]
+  createdAt    DateTime         @default(now())
+  updatedAt    DateTime         @updatedAt
 }
 
 model Ride {
-  id String @id @default(uuid())
-  inviteCode String @unique
-  destination Json @db.JsonB @default("[]")
-  status RideStatus
-  user User @relation(fields:[createdBy], references: [id])
-  createdBy String
-  members RideMembership[]
-  createdAt DateTime
-  updatedAt DateTime
+  id          String           @id @default(uuid())
+  inviteCode  String           @unique
+  destination Json             @db.JsonB
+  status      RideStatus
+  user        User             @relation(fields:[createdBy], references: [id])
+  createdBy   String
+  members     RideMembership[]
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
 }
 
 model RideMembership {
-  ride Ride @relation(fields:[rideId], references: [id])
-  rideId String
-  user User @relation(fields:[userId], references: [id])
-  userId String
-  role Role
-  status MembershipStatus
-  createdAt DateTime
+  ride      Ride              @relation(fields:[rideId], references: [id])
+  rideId    String
+  user      User              @relation(fields:[userId], references: [id])
+  userId    String
+  role      Role
+  status    MembershipStatus
+  createdAt DateTime          @default(now())
 
   @@unique([rideId, userId])
 }
