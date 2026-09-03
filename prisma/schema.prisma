@@ -15,7 +15,7 @@ datasource db {
 model User {
   id           String           @id @default(uuid())
   phoneNumber  String           @unique
-  name         String
+  name         String?
   memberships  RideMembership[]
   createdRides Ride[]
   createdAt    DateTime         @default(now())
