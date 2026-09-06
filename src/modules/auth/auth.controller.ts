@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
-import { AuthService, authService } from "./auth.service";
+import { AuthService } from "./auth.service";
 
-class AuthController {
+export class AuthController {
   private authService: AuthService;
 
   constructor(authService: AuthService) {
@@ -18,10 +18,18 @@ class AuthController {
   async verifyOTP(req: Request, res: Response) {
     const { otp, phoneNumber } = req.body;
 
-    const data = this.authService.verifyOTPGenerateToken(phoneNumber, otp);
+    const data = this.authService.verifyOTP(phoneNumber, otp);
+
+    return res.status(200).json({ success: true, data, error: null });
+  }
+
+  async register(req: Request, res: Response) {
+    const { verificationToken, name } = req.body;
+
+    const data = await this.authService.registerUser(name, verificationToken);
 
     return res.status(201).json({ success: true, data, error: null });
   }
-}
 
-export const authController = new AuthController(authService);
+  async generateNewRefreshToken(req: Request, res: Response) {}
+}

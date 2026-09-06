@@ -1,5 +1,5 @@
 import Router from "express";
-import { authController } from "./auth.controller";
+import { authController } from "../../shared/container";
 import { asyncHandler } from "../../utils/async-handler";
 
 const router = Router();
@@ -12,6 +12,16 @@ router.post(
 router.post(
   "/otp/verify",
   asyncHandler(authController.verifyOTP.bind(authController)),
+);
+
+router.post(
+  "/register",
+  asyncHandler(authController.register.bind(authController)),
+);
+
+router.get(
+  "/refresh",
+  asyncHandler(authController.generateNewRefreshToken.bind(authController)),
 );
 
 export default router;

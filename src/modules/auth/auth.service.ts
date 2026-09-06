@@ -1,28 +1,98 @@
 import { redis } from "../../infrastructure/redis";
 import { generateOTP } from "../../utils/generateOTP";
 import crypto from "crypto";
+import { IAuthRepository } from "./auth.repository";
+import bcrypt from "bcrypt";
+import { env } from "../../config/env";
 
 export class AuthService {
+  private readonly authRepository: IAuthRepository;
+
+  constructor(authRepository: IAuthRepository) {
+    this.authRepository = authRepository;
+  }
+
+  async generateToken(userId: string) {
+    const accessToken = crypto.randomBytes(32).toString("hex");
+    const refreshToken = crypto.randomBytes(32).toString("hex");
+
+    const accessTokenHash = crypto
+      .createHash("sha256")
+      .update(accessToken)
+      .digest("hex");
+    const refreshTokenHash = crypto
+      .createHash("sha256")
+      .update(refreshToken)
+      .digest("hex");
+
+    await redis.set(
+      `auth:access:${accessTokenHash}`,
+      userId,
+      "EX",
+      env.accessTokenExpiry,
+    );
+
+    await redis.set(
+      `auth:refresh:${refreshTokenHash}`,
+      userId,
+      "EX",
+      env.refreshTokenExpiry,
+    );
+    return { accessToken, refreshToken };
+  }
+
   async sendOTPToPhoneNumber(phoneNumber: string) {
     const otp = generateOTP();
     console.log(`OTP for phoneNumber ${phoneNumber} is ${otp}`);
-    await redis.set(`auht:otp-${phoneNumber}`, otp);
-    await redis.expire(`auth:otp-${phoneNumber}`, 600);
-    return {};
+    await redis.set(`auth:otp:${phoneNumber}`, otp, "EX", 600);
+    return { message: "OTP sent successfully" };
   }
 
-  async verifyOTPGenerateToken(phoneNumber: string, otp: string) {
-    const storedOtp = await redis.get(`auth:otp-${phoneNumber}`);
+  async verifyOTP(phoneNumber: string, otp: string) {
+    const storedOtp = await redis.get(`auth:otp:${phoneNumber}`);
 
     if (storedOtp !== otp) {
       return new Error("INCORRECT_OTP");
     }
 
-    await redis.del(`auth:otp-${phoneNumber}`);
+    await redis.del(`auth:otp:${phoneNumber}`);
 
-    const token = crypto.randomBytes(32).toString("hex");
-    return { token };
+    const existingUser = await this.authRepository.findUser(phoneNumber);
+    if (!existingUser) {
+      const verificationToken = crypto.randomBytes(32).toString("hex");
+      await redis.set(
+        `auth:verification:${verificationToken}`,
+        phoneNumber,
+        "EX",
+        600,
+      );
+
+      return { isNewUser: true, verificationToken };
+    }
+
+    const userId = existingUser.id;
+    const { accessToken, refreshToken } = await this.generateToken(userId);
+
+    return { accessToken, refreshToken };
+  }
+
+  async registerUser(name: string, verificationToken: string) {
+    const phoneNumber = await redis.get(
+      `auth:verification:${verificationToken}`,
+    );
+
+    if (!phoneNumber) {
+      throw new Error("OTP_EXPIRED");
+    }
+
+    await redis.del(`auth:verification:${verificationToken}`);
+
+    const userData = await this.authRepository.createUser(phoneNumber, name);
+
+    const userId = userData.id;
+
+    const { accessToken, refreshToken } = await this.generateToken(userId);
+
+    return { accessToken, refreshToken };
   }
 }
-
-export const authService = new AuthService();
