@@ -16,9 +16,16 @@ export class AuthPrismaRepository implements IAuthRepository {
     });
   }
 
-  async createUser(phoneNumber: string): Promise<UserDetails> {
+  async createUser(phoneNumber: string, name: string): Promise<UserDetails> {
     return this.db.user.create({
-      data: { phoneNumber },
+      data: { phoneNumber, name },
+      select: { id: true, phoneNumber: true, name: true },
+    });
+  }
+
+  async findUserById(userId: string): Promise<UserDetails | null> {
+    return this.db.user.findUnique({
+      where: { id: userId },
       select: { id: true, phoneNumber: true, name: true },
     });
   }

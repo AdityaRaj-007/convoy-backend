@@ -2,7 +2,6 @@ import { redis } from "../../infrastructure/redis";
 import { generateOTP } from "../../utils/generateOTP";
 import crypto from "crypto";
 import { IAuthRepository } from "./auth.repository";
-import bcrypt from "bcrypt";
 import { env } from "../../config/env";
 
 export class AuthService {
@@ -12,7 +11,7 @@ export class AuthService {
     this.authRepository = authRepository;
   }
 
-  async generateToken(userId: string) {
+  async createSession(userId: string) {
     const accessToken = crypto.randomBytes(32).toString("hex");
     const refreshToken = crypto.randomBytes(32).toString("hex");
 
@@ -39,6 +38,24 @@ export class AuthService {
       env.refreshTokenExpiry,
     );
     return { accessToken, refreshToken };
+  }
+
+  async generateNewAccessToken(userId: string) {
+    const accessToken = crypto.randomBytes(32).toString("hex");
+
+    const accessTokenHash = crypto
+      .createHash("sha256")
+      .update(accessToken)
+      .digest("hex");
+
+    await redis.set(
+      `auth:access:${accessTokenHash}`,
+      userId,
+      "EX",
+      env.accessTokenExpiry,
+    );
+
+    return accessToken;
   }
 
   async sendOTPToPhoneNumber(phoneNumber: string) {
@@ -71,7 +88,7 @@ export class AuthService {
     }
 
     const userId = existingUser.id;
-    const { accessToken, refreshToken } = await this.generateToken(userId);
+    const { accessToken, refreshToken } = await this.createSession(userId);
 
     return { accessToken, refreshToken };
   }
@@ -82,16 +99,39 @@ export class AuthService {
     );
 
     if (!phoneNumber) {
-      throw new Error("OTP_EXPIRED");
+      throw new Error("VERIFICATION_TOKEN_EXPIRED");
     }
-
-    await redis.del(`auth:verification:${verificationToken}`);
 
     const userData = await this.authRepository.createUser(phoneNumber, name);
 
+    await redis.del(`auth:verification:${verificationToken}`);
+
     const userId = userData.id;
 
-    const { accessToken, refreshToken } = await this.generateToken(userId);
+    const { accessToken, refreshToken } = await this.createSession(userId);
+
+    return { accessToken, refreshToken };
+  }
+
+  async generateNewToken(refreshToken: string) {
+    const refreshTokenHash = crypto
+      .createHash("sha256")
+      .update(refreshToken)
+      .digest("hex");
+
+    const userId = await redis.get(`auth:refresh:${refreshTokenHash}`);
+
+    if (!userId) {
+      throw new Error("UNAUTHORIZED");
+    }
+
+    const existingUser = await this.authRepository.findUserById(userId);
+
+    if (!existingUser || userId !== existingUser.id) {
+      throw new Error("UNAUTHORIZED");
+    }
+
+    const accessToken = await this.generateNewAccessToken(existingUser.id);
 
     return { accessToken, refreshToken };
   }

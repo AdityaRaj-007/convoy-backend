@@ -21,7 +21,7 @@ router.post(
 
 router.get(
   "/refresh",
-  asyncHandler(authController.generateNewRefreshToken.bind(authController)),
+  asyncHandler(authController.generateNewAccessToken.bind(authController)),
 );
 
 export default router;

@@ -31,5 +31,11 @@ export class AuthController {
     return res.status(201).json({ success: true, data, error: null });
   }
 
-  async generateNewRefreshToken(req: Request, res: Response) {}
+  async generateNewAccessToken(req: Request, res: Response) {
+    const { refreshToken } = req.body;
+
+    const data = await this.authService.generateNewToken(refreshToken);
+
+    return res.status(200).json({ success: true, data, error: null });
+  }
 }
