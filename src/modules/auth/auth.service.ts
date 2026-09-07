@@ -131,6 +131,7 @@ export class AuthService {
       throw new Error("UNAUTHORIZED");
     }
 
+    // later add refreshToken rotation
     const accessToken = await this.generateNewAccessToken(existingUser.id);
 
     return { accessToken, refreshToken };

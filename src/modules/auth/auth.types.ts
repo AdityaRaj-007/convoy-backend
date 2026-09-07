@@ -3,3 +3,7 @@ export type UserDetails = {
   phoneNumber: string;
   name: string | null;
 };
+
+export type AuthenticatedUser = {
+  id: string;
+};
