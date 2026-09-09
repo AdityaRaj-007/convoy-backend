@@ -7,6 +7,6 @@ const app = express();
 
 app.use(express.json());
 app.use("/api/auth", authRouter);
-app.use("/api/ride", authenticate, ridesRouter);
+app.use("/api/rides", authenticate, ridesRouter);
 
 export default app;
