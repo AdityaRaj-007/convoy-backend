@@ -42,4 +42,10 @@ export class RidesController {
   async leaveRide(req: Request, res: Response, next: NextFunction) {}
 
   async startRide(req: Request, res: Response, next: NextFunction) {}
+
+  async completeRide(req: Request, res: Response, next: NextFunction) {}
+
+  async updateRideDetails(req: Request, res: Response, next: NextFunction) {}
+
+  async regenerateInviteCode(req: Request, res: Response, next: NextFunction) {}
 }

@@ -23,10 +23,19 @@ export const RemoveUserSchema = z.object({
   userId: z.string(),
 });
 
-export const LeaveRideSchema = z.object({
+export const UpdateRideStatusSchema = z.object({
   rideId: z.string(),
 });
 
-export const StartRideSchema = z.object({
+export const UpdateRideDetailsBodySchema = z.object({
+  rideName: z.string() || null,
+  destination: z.object() || null,
+});
+
+export const UpdateRideDetailsParamsSchema = z.object({
+  rideId: z.string(),
+});
+
+export const RegenrateInviteCodeSchema = z.object({
   rideId: z.string(),
 });

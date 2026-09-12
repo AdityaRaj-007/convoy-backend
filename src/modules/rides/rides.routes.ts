@@ -4,10 +4,12 @@ import {
   AcceptRideRequestSchema,
   CreateRidesSchema,
   JoinRideSchema,
-  LeaveRideSchema,
+  UpdateRideStatusSchema,
   RejectRideRequestSchema,
   RemoveUserSchema,
-  StartRideSchema,
+  UpdateRideDetailsBodySchema,
+  UpdateRideDetailsParamsSchema,
+  RegenrateInviteCodeSchema,
 } from "./rides.schema";
 import { ridesController } from "../../shared/container";
 import { asyncHandler } from "../../utils/async-handler";
@@ -19,6 +21,10 @@ import {
   RemoveUserFromRide,
   LeaveRide,
   StartRide,
+  CompleteRide,
+  CancelRide,
+  UpdateRideDetailsParams,
+  UpdateRideDetailsBody,
 } from "./rides.types";
 
 const router = Router();
@@ -46,13 +52,13 @@ router.get(
 );
 
 router.post<AcceptRideRequest, {}, {}>(
-  "/:rideId/member/:userId/accept",
+  "/:rideId/members/:userId/accept",
   validate({ params: AcceptRideRequestSchema }),
   asyncHandler(ridesController.acceptUserRideRequest.bind(ridesController)),
 );
 
 router.post<RejectRideRequest, {}, {}>(
-  "/:rideId/member/:userId/reject",
+  "/:rideId/members/:userId/reject",
   validate({ params: RejectRideRequestSchema }),
   asyncHandler(ridesController.rejectUserRideRequest.bind(ridesController)),
 );
@@ -65,13 +71,39 @@ router.delete<RemoveUserFromRide, {}, {}>(
 
 router.post<LeaveRide, {}, {}>(
   "/:rideId/leave",
-  validate({ params: LeaveRideSchema }),
+  validate({ params: UpdateRideStatusSchema }),
   asyncHandler(ridesController.leaveRide.bind(ridesController)),
 );
 
 router.post<StartRide, {}, {}>(
   "/:rideId/start",
-  validate({ params: StartRideSchema }),
+  validate({ params: UpdateRideStatusSchema }),
   asyncHandler(ridesController.startRide.bind(ridesController)),
+);
+
+router.post<CompleteRide, {}, {}>(
+  "/:rideId/complete",
+  validate({ params: UpdateRideStatusSchema }),
+  asyncHandler(ridesController.completeRide.bind(ridesController)),
+);
+
+router.post<CancelRide, {}, {}>(
+  "/:rideId/cancel",
+  validate({ params: UpdateRideStatusSchema }),
+  asyncHandler(ridesController.completeRide.bind(ridesController)),
+);
+
+router.patch<UpdateRideDetailsParams, {}, UpdateRideDetailsBody>(
+  "/:rideId",
+  validate({
+    body: UpdateRideDetailsBodySchema,
+    params: UpdateRideDetailsParamsSchema,
+  }),
+  asyncHandler(ridesController.updateRideDetails.bind(ridesController)),
+);
+
+router.post(
+  "/:rideId/invite-code/regenerate",
+  validate({ params: RegenrateInviteCodeSchema }),
 );
 export default router;
