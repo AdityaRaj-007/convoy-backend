@@ -20,15 +20,17 @@ export interface IRidesRepository {
 
   join(userId: string, inviteCode: string): Promise<RideDetails | null>;
 
-  //   rideMembers(rideId: string): Promise<RideMembers | null>;
+  rideMembers(rideId: string): Promise<RideMembers>;
 
-  //   acceptRequest(rideId: string, userId: string): Promise<RideMembership | null>;
+  rideDetails(rideId: string): Promise<RideDetails | null>;
 
-  //   rejectRequest(rideId: string, userId: string): Promise<RideMembership | null>;
+  acceptRequest(rideId: string, userId: string): Promise<RideMembership | null>;
 
-  //   removeUser(rideId: string, userId: string): Promise<RemovedUser | null>;
+  rejectRequest(rideId: string, userId: string): Promise<RideMembership | null>;
 
-  //   leaveRide(rideId: string): Promise<RemovedUser | null>;
+  removeUser(rideId: string, userId: string): Promise<RemovedUser | null>;
+
+  leaveRide(rideId: string, userId: string): Promise<RemovedUser | null>;
 
   //   startRide(rideId: string): Promise<ActiveRide | null>;
 

@@ -10,6 +10,7 @@ import {
   UpdateRideDetailsBodySchema,
   UpdateRideDetailsParamsSchema,
   RegenrateInviteCodeSchema,
+  FetchMembersSchema,
 } from "./rides.schema";
 import { ridesController } from "../../shared/container";
 import { asyncHandler } from "../../utils/async-handler";
@@ -25,6 +26,7 @@ import {
   CancelRide,
   UpdateRideDetailsParams,
   UpdateRideDetailsBody,
+  FetchMembersParams,
 } from "./rides.types";
 
 const router = Router();
@@ -46,8 +48,9 @@ router.post<{}, {}, JoinRideBody>(
   asyncHandler(ridesController.joinRide.bind(ridesController)),
 );
 
-router.get(
+router.get<FetchMembersParams, {}, {}>(
   "/:rideId/members",
+  validate({ params: FetchMembersSchema }),
   asyncHandler(ridesController.getRideMembers.bind(ridesController)),
 );
 

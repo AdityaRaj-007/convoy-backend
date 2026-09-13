@@ -1,6 +1,14 @@
 import { NextFunction, Request, Response } from "express";
 import { RidesService } from "./rides.service";
-import { CreateRideBody, JoinRideBody } from "./rides.types";
+import {
+  AcceptRideRequest,
+  CreateRideBody,
+  FetchMembersParams,
+  JoinRideBody,
+  LeaveRide,
+  RejectRideRequest,
+  RemoveUserFromRide,
+} from "./rides.types";
 
 export class RidesController {
   private readonly ridesService: RidesService;
@@ -62,23 +70,102 @@ export class RidesController {
     return res.status(201).json({ success: true, data, error: null });
   }
 
-  async getRideMembers(req: Request, res: Response, next: NextFunction) {}
+  async getRideMembers(
+    req: Request<FetchMembersParams, {}, {}>,
+    res: Response,
+    next: NextFunction,
+  ) {
+    const { rideId } = req.params;
+
+    const data = await this.ridesService.rideMembers(rideId);
+
+    return res.status(200).json({ success: true, data, error: null });
+  }
 
   async acceptUserRideRequest(
-    req: Request,
+    req: Request<AcceptRideRequest, {}, {}>,
     res: Response,
     next: NextFunction,
-  ) {}
+  ) {
+    if (!req.user) {
+      return res
+        .status(401)
+        .json({ sucess: false, data: null, error: "UNAUTHORIZED" });
+    }
+
+    const { userId: ownerId } = req.user;
+
+    const { rideId, userId } = req.params;
+
+    const data = await this.ridesService.acceptUserRequest(
+      rideId,
+      userId,
+      ownerId,
+    );
+
+    return res.status(200).json({ success: true, data, error: null });
+  }
 
   async rejectUserRideRequest(
-    req: Request,
+    req: Request<RejectRideRequest, {}, {}>,
     res: Response,
     next: NextFunction,
-  ) {}
+  ) {
+    if (!req.user) {
+      return res
+        .status(401)
+        .json({ sucess: false, data: null, error: "UNAUTHORIZED" });
+    }
 
-  async removeUserFromRide(req: Request, res: Response, next: NextFunction) {}
+    const { userId: ownerId } = req.user;
 
-  async leaveRide(req: Request, res: Response, next: NextFunction) {}
+    const { rideId, userId } = req.params;
+
+    const data = await this.ridesService.rejectUserRequest(
+      rideId,
+      userId,
+      ownerId,
+    );
+
+    return res.status(200).json({ success: true, data, error: null });
+  }
+
+  async removeUserFromRide(
+    req: Request<RemoveUserFromRide, {}, {}>,
+    res: Response,
+    next: NextFunction,
+  ) {
+    if (!req.user) {
+      return res
+        .status(401)
+        .json({ success: false, data: null, error: "UNAUTHORIZED" });
+    }
+
+    const { rideId, userId } = req.params;
+
+    const data = await this.ridesService.removeUser(rideId, userId);
+
+    return res.status(200).json({ success: true, data, error: null });
+  }
+
+  async leaveRide(
+    req: Request<LeaveRide, {}, {}>,
+    res: Response,
+    next: NextFunction,
+  ) {
+    if (!req.user) {
+      return res
+        .status(401)
+        .json({ success: false, data: null, error: "UNAUTHORIZED" });
+    }
+
+    const { userId } = req.user;
+    const { rideId } = req.params;
+
+    const data = await this.ridesService.leaveRide(rideId, userId);
+
+    return res.status(200).json({ success: true, data, error: null });
+  }
 
   async startRide(req: Request, res: Response, next: NextFunction) {}
 

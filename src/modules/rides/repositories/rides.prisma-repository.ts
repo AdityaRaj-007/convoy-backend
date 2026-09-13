@@ -1,6 +1,12 @@
 import { PrismaClient } from "../../../generated/prisma/client";
 import { IRidesRepository } from "../rides.repository";
-import { RideDestination, RideDetails } from "../rides.types";
+import {
+  RemovedUser,
+  RideDestination,
+  RideDetails,
+  RideMembers,
+  RideMembership,
+} from "../rides.types";
 
 export class PrismaRidesRepository implements IRidesRepository {
   private readonly db: PrismaClient;
@@ -47,6 +53,8 @@ export class PrismaRidesRepository implements IRidesRepository {
   }
 
   async activeRides(userId: string): Promise<RideDetails[]> {
+    // TODO
+    // Fetch the rideMembership role as well
     const rides = await this.db.ride.findMany({
       where: { createdBy: userId, status: "ACTIVE" },
       select: {
@@ -105,5 +113,112 @@ export class PrismaRidesRepository implements IRidesRepository {
     });
 
     return data;
+  }
+
+  async rideMembers(rideId: string): Promise<RideMembers> {
+    const members = await this.db.rideMembership.findMany({
+      where: { rideId, status: "ACTIVE" },
+      omit: { status: true, createdAt: true, rideId: true },
+      include: { user: { select: { name: true, phoneNumber: true } } },
+    });
+
+    return members.map((member) => ({
+      userId: member.userId,
+      name: member.user.name,
+      phoneNumber: member.user.phoneNumber,
+      role: member.role,
+    }));
+  }
+
+  async rideDetails(rideId: string): Promise<RideDetails | null> {
+    const data = await this.db.ride.findUnique({
+      where: { id: rideId },
+      omit: { createdAt: true, updatedAt: true },
+    });
+
+    if (!data) {
+      return null;
+    }
+
+    return {
+      destination: data.destination as RideDestination,
+      rideId: data.id,
+      inviteCode: data.inviteCode,
+      status: data.status,
+    };
+  }
+
+  async acceptRequest(
+    rideId: string,
+    userId: string,
+  ): Promise<RideMembership | null> {
+    const data = await this.db.rideMembership.update({
+      where: { rideId_userId: { rideId, userId } },
+      data: { status: "ACTIVE" },
+    });
+
+    if (!data) {
+      return null;
+    }
+
+    return { userId: data.userId, role: data.role, status: data.status };
+  }
+
+  async rejectRequest(
+    rideId: string,
+    userId: string,
+  ): Promise<RideMembership | null> {
+    const data = await this.db.rideMembership.delete({
+      where: { rideId_userId: { rideId, userId }, status: "PENDING" },
+    });
+
+    if (!data) {
+      return null;
+    }
+
+    return { userId: data.userId, role: data.role, status: data.status };
+  }
+
+  async removeUser(
+    rideId: string,
+    userId: string,
+  ): Promise<RemovedUser | null> {
+    const data = await this.db.rideMembership.delete({
+      where: { rideId_userId: { rideId, userId } },
+      omit: {
+        rideId: true,
+        userId: true,
+        status: true,
+        role: true,
+        createdAt: true,
+      },
+      include: { user: { select: { name: true, id: true } } },
+    });
+
+    if (!data) {
+      return null;
+    }
+
+    return { name: data.user.name, id: data.user.id };
+  }
+
+  async leaveRide(rideId: string, userId: string): Promise<RemovedUser | null> {
+    const data = await this.db.rideMembership.delete({
+      where: { rideId_userId: { rideId, userId } },
+      omit: {
+        rideId: true,
+        userId: true,
+        status: true,
+        role: true,
+        createdAt: true,
+      },
+      include: { user: { select: { name: true, id: true } } },
+    });
+
+    if (!data) {
+      return null;
+    }
+
+    return { name: data.user.name, id: data.user.id };
   }
 }

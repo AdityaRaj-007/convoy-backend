@@ -44,15 +44,68 @@ export class RidesService {
     return await this.ridesRepository.join(userId, inviteCode);
   }
 
-  async rideMembers(rideId: string) {}
+  async rideMembers(rideId: string) {
+    return await this.ridesRepository.rideMembers(rideId);
+  }
 
-  async acceptUserRequest(rideId: string, userId: string, ownerId: string) {}
+  async acceptUserRequest(rideId: string, userId: string, ownerId: string) {
+    const rideDetails = await this.ridesRepository.rideDetails(rideId);
 
-  async rejectUserRequest(rideId: string, userId: string, ownerId: string) {}
+    if (!rideDetails) {
+      throw new Error("RIDE_DOES_NOT_EXISTS");
+    }
 
-  async removeUser(rideId: string, userId: string) {}
+    if (rideDetails.createdBy !== ownerId) {
+      throw new Error("FORBIDDEN");
+    }
 
-  async leaveRide(rideId: string) {}
+    const data = await this.ridesRepository.acceptRequest(rideId, userId);
+
+    if (!data) {
+      throw new Error("NOT_A_MEMBER");
+    }
+
+    return data;
+  }
+
+  async rejectUserRequest(rideId: string, userId: string, ownerId: string) {
+    const rideDetails = await this.ridesRepository.rideDetails(rideId);
+
+    if (!rideDetails) {
+      throw new Error("RIDE_DOES_NOT_EXISTS");
+    }
+
+    if (rideDetails.createdBy !== ownerId) {
+      throw new Error("FORBIDDEN");
+    }
+
+    const data = await this.ridesRepository.acceptRequest(rideId, userId);
+
+    if (!data) {
+      throw new Error("NOT_A_MEMBER");
+    }
+
+    return data;
+  }
+
+  async removeUser(rideId: string, userId: string) {
+    const rideDetails = this.ridesRepository.rideDetails(rideId);
+
+    if (!rideDetails) {
+      throw new Error("RIDE_DOES_NOT_EXISTS");
+    }
+    return await this.ridesRepository.removeUser(rideId, userId);
+  }
+
+  async leaveRide(rideId: string, userId: string) {
+    const rideDetails = this.ridesRepository.rideDetails(rideId);
+
+    if (!rideDetails) {
+      throw new Error("RIDE_DOES_NOT_EXISTS");
+    }
+
+    return await this.ridesRepository.leaveRide(rideId, userId);
+  }
 
   async startRide(rideId: string) {}
 

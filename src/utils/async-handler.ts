@@ -1,9 +1,22 @@
 import { NextFunction, Request, RequestHandler, Response } from "express";
 
-export function asyncHandler(
-  fn: (req: Request, res: Response, next: NextFunction) => Promise<any>,
-): RequestHandler {
-  return async function (req: Request, res: Response, next: NextFunction) {
+export function asyncHandler<
+  P = {},
+  ResBody = any,
+  ReqBody = any,
+  ReqQuery = any,
+>(
+  fn: (
+    req: Request<P, ResBody, ReqBody, ReqQuery>,
+    res: Response,
+    next: NextFunction,
+  ) => Promise<any>,
+): RequestHandler<P, ResBody, ReqBody, ReqQuery> {
+  return async function (
+    req: Request<P, ResBody, ReqBody, ReqQuery>,
+    res: Response,
+    next: NextFunction,
+  ) {
     try {
       await fn(req, res, next);
     } catch (error) {

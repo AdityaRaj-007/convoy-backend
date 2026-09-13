@@ -13,6 +13,10 @@ export const JoinRideSchema = z.object({
   inviteCode: z.string(),
 });
 
+export const FetchMembersSchema = z.object({
+  rideId: z.string(),
+});
+
 export const AcceptRideRequestSchema = z.object({
   rideId: z.string(),
   userId: z.string(),
