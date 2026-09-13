@@ -12,7 +12,7 @@ export class AuthController {
 
   async sendOTP(req: Request, res: Response) {
     const { phoneNumber } = req.body;
-    const data = this.authService.sendOTPToPhoneNumber(phoneNumber);
+    const data = await this.authService.sendOTPToPhoneNumber(phoneNumber);
 
     return res.status(200).json({ success: true, data, error: null });
   }
@@ -20,7 +20,10 @@ export class AuthController {
   async verifyOTP(req: Request, res: Response) {
     const { otp, phoneNumber } = req.body;
 
-    const data = this.authService.verifyOTP(phoneNumber, otp);
+    const data = await this.authService.verifyOTP(phoneNumber, otp);
+
+    // TODO
+    // Send refresh token as a cookie
 
     return res.status(200).json({ success: true, data, error: null });
   }
@@ -33,6 +36,7 @@ export class AuthController {
       verificationToken,
     );
 
+    console.log("Refresh Token : " + refreshToken);
     res.cookie("refreshToken", refreshToken, {
       httpOnly: true,
       secure: true,

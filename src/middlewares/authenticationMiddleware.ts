@@ -36,7 +36,9 @@ export const authenticate = async (
         .json({ success: false, data: null, error: "UNAUTHORIZED" });
     }
 
-    req.user = { id: userId };
+    console.log("UserId : " + userId);
+
+    req.user = { userId };
     return next();
   } catch (err) {
     return res

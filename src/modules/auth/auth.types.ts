@@ -5,5 +5,5 @@ export type UserDetails = {
 };
 
 export type AuthenticatedUser = {
-  id: string;
+  userId: string;
 };

@@ -29,7 +29,7 @@ export type UpdateRideDetailsParams = z.infer<
 >;
 export type UpdateRideDetailsBody = z.infer<typeof UpdateRideDetailsBodySchema>;
 
-export type RideDestination = { name?: string; lat: number; long: string };
+export type RideDestination = { name?: string; lat: number; long: number };
 export type RideDetails = {
   rideId: string;
   inviteCode: string;
@@ -43,7 +43,11 @@ export type RideMembers = {
   status: MembershipStatus;
 }[];
 
-export type RideMembership = { userId: string; role: Role };
+export type RideMembership = {
+  userId: string;
+  role: Role;
+  status: MembershipStatus;
+};
 
 export type RemovedUser = { name: string };
 

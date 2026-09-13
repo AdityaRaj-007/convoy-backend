@@ -29,7 +29,7 @@ router.post(
   asyncHandler(authController.register.bind(authController)),
 );
 
-router.get(
+router.post(
   "/refresh",
   validate({ body: generateNewAccessTokenSchema }),
   asyncHandler(authController.generateNewAccessToken.bind(authController)),

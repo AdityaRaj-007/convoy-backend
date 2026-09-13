@@ -1,3 +1,4 @@
+import { generate } from "short-uuid";
 import { IRidesRepository } from "./rides.repository";
 import { RideDestination } from "./rides.types";
 
@@ -8,11 +9,40 @@ export class RidesService {
     this.ridesRepository = ridesRepository;
   }
 
-  async create(name: string, destination: RideDestination) {}
+  async create(rideName: string, destination: RideDestination, userId: string) {
+    const inviteCode = generate();
 
-  async userActiveRides(userId: string) {}
+    const activeRides = await this.ridesRepository.activeRides(userId);
 
-  async join(userId: string, inviteCode: string) {}
+    console.log("Active Ride Lists : " + activeRides + typeof activeRides);
+    if (activeRides === null) {
+      throw new Error("ACTIVE_RIDE_EXISTS");
+    }
+
+    const data = await this.ridesRepository.create(
+      rideName,
+      destination,
+      userId,
+      inviteCode,
+    );
+
+    return data;
+  }
+
+  async userActiveRides(userId: string) {
+    const activeRides = await this.ridesRepository.activeRides(userId);
+    console.log("Active Rides : " + activeRides);
+
+    if (!activeRides) {
+      return {};
+    }
+
+    return activeRides;
+  }
+
+  async join(userId: string, inviteCode: string) {
+    return await this.ridesRepository.join(userId, inviteCode);
+  }
 
   async rideMembers(rideId: string) {}
 
@@ -33,8 +63,8 @@ export class RidesService {
   async updateRideDetails(
     rideId: string,
     payload: {
-      name?: string;
-      destination?: { name?: string; lat: number; long: number };
+      name: string;
+      destination: RideDestination;
     },
   ) {}
 

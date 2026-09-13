@@ -1,7 +1,12 @@
 import z from "zod";
 
 export const CreateRidesSchema = z.object({
-  destination: z.object(),
+  destination: z.object({
+    name: z.string() || null,
+    lat: z.number(),
+    long: z.number(),
+  }),
+  rideName: z.string(),
 });
 
 export const JoinRideSchema = z.object({
