@@ -88,17 +88,21 @@ export class RidesService {
     return data;
   }
 
-  async removeUser(rideId: string, userId: string) {
-    const rideDetails = this.ridesRepository.rideDetails(rideId);
+  async removeUser(rideId: string, userId: string, ownerId: string) {
+    const rideDetails = await this.ridesRepository.rideDetails(rideId);
 
     if (!rideDetails) {
       throw new Error("RIDE_DOES_NOT_EXISTS");
+    }
+
+    if (rideDetails.createdBy !== ownerId) {
+      throw new Error("FORBIDDEN");
     }
     return await this.ridesRepository.removeUser(rideId, userId);
   }
 
   async leaveRide(rideId: string, userId: string) {
-    const rideDetails = this.ridesRepository.rideDetails(rideId);
+    const rideDetails = await this.ridesRepository.rideDetails(rideId);
 
     if (!rideDetails) {
       throw new Error("RIDE_DOES_NOT_EXISTS");
@@ -107,19 +111,91 @@ export class RidesService {
     return await this.ridesRepository.leaveRide(rideId, userId);
   }
 
-  async startRide(rideId: string) {}
+  async startRide(rideId: string, userId: string) {
+    const rideDetails = await this.ridesRepository.rideDetails(rideId);
 
-  async completeRide(rideId: string) {}
+    if (!rideDetails) {
+      throw new Error("RIDE_DOES_NOT_EXISTS");
+    }
 
-  async cancelRide(rideId: string) {}
+    if (rideDetails.createdBy !== userId) {
+      throw new Error("FORBIDDEN");
+    }
+  }
+
+  async completeRide(rideId: string, userId: string) {
+    const rideDetails = await this.ridesRepository.rideDetails(rideId);
+
+    if (!rideDetails) {
+      throw new Error("RIDE_DOES_NOT_EXISTS");
+    }
+
+    if (rideDetails.createdBy !== userId) {
+      throw new Error("FORBIDDEN");
+    }
+
+    const data = await this.ridesRepository.completeRide(rideId);
+
+    return data;
+  }
+
+  async cancelRide(rideId: string, userId: string) {
+    const rideDetails = await this.ridesRepository.rideDetails(rideId);
+
+    if (!rideDetails) {
+      throw new Error("RIDE_DOES_NOT_EXISTS");
+    }
+
+    if (rideDetails.createdBy !== userId) {
+      throw new Error("FORBIDDEN");
+    }
+
+    const data = await this.ridesRepository.cancelRide(rideId);
+
+    return data;
+  }
 
   async updateRideDetails(
     rideId: string,
     payload: {
-      name: string;
+      rideName: string;
       destination: RideDestination;
     },
-  ) {}
+    userId: string,
+  ) {
+    const rideDetails = await this.ridesRepository.rideDetails(rideId);
 
-  async regenerateCode(rideId: string) {}
+    if (!rideDetails) {
+      throw new Error("RIDE_DOES_NOT_EXISTS");
+    }
+
+    if (rideDetails.createdBy !== userId) {
+      throw new Error("FORBIDDEN");
+    }
+
+    const data = await this.ridesRepository.updateRideDetails(rideId, payload);
+
+    return data;
+  }
+
+  async regenerateCode(rideId: string, userId: string) {
+    const rideDetails = await this.ridesRepository.rideDetails(rideId);
+
+    if (!rideDetails) {
+      throw new Error("RIDE_DOES_NOT_EXISTS");
+    }
+
+    if (rideDetails.createdBy !== userId) {
+      throw new Error("FORBIDDEN");
+    }
+
+    const newInviteCode = generate();
+
+    const data = await this.ridesRepository.updateInviteCode(
+      rideId,
+      newInviteCode,
+    );
+
+    return data;
+  }
 }

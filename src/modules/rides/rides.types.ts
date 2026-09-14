@@ -4,6 +4,7 @@ import {
   CreateRidesSchema,
   FetchMembersSchema,
   JoinRideSchema,
+  RegenrateInviteCodeSchema,
   RejectRideRequestSchema,
   RemoveUserSchema,
   UpdateRideDetailsBodySchema,
@@ -30,6 +31,9 @@ export type UpdateRideDetailsParams = z.infer<
   typeof UpdateRideDetailsParamsSchema
 >;
 export type UpdateRideDetailsBody = z.infer<typeof UpdateRideDetailsBodySchema>;
+export type RegenrateInviteCodeParams = z.infer<
+  typeof RegenrateInviteCodeSchema
+>;
 
 export type RideDestination = { name?: string; lat: number; long: number };
 export type RideDetails = {
@@ -53,7 +57,6 @@ export type RideMembership = {
 };
 
 export type RemovedUser = { name: string | null; id: string };
-
 export type ActiveRide = { name: string; status: RideStatus; id: string };
-
 export type CompletedRide = { name: string; status: RideStatus; id: string };
+export type CancelledRide = { name: string; status: RideStatus; id: string };

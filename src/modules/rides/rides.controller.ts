@@ -2,12 +2,18 @@ import { NextFunction, Request, Response } from "express";
 import { RidesService } from "./rides.service";
 import {
   AcceptRideRequest,
+  CancelRide,
+  CompleteRide,
   CreateRideBody,
   FetchMembersParams,
   JoinRideBody,
   LeaveRide,
+  RegenrateInviteCodeParams,
   RejectRideRequest,
   RemoveUserFromRide,
+  StartRide,
+  UpdateRideDetailsBody,
+  UpdateRideDetailsParams,
 } from "./rides.types";
 
 export class RidesController {
@@ -141,9 +147,10 @@ export class RidesController {
         .json({ success: false, data: null, error: "UNAUTHORIZED" });
     }
 
+    const { userId: ownerId } = req.user;
     const { rideId, userId } = req.params;
 
-    const data = await this.ridesService.removeUser(rideId, userId);
+    const data = await this.ridesService.removeUser(rideId, userId, ownerId);
 
     return res.status(200).json({ success: true, data, error: null });
   }
@@ -167,11 +174,106 @@ export class RidesController {
     return res.status(200).json({ success: true, data, error: null });
   }
 
-  async startRide(req: Request, res: Response, next: NextFunction) {}
+  async startRide(
+    req: Request<StartRide, {}, {}>,
+    res: Response,
+    next: NextFunction,
+  ) {
+    if (!req.user) {
+      return res
+        .status(401)
+        .json({ success: false, data: null, error: "UNAUTHORIZED" });
+    }
 
-  async completeRide(req: Request, res: Response, next: NextFunction) {}
+    const { userId } = req.user;
 
-  async updateRideDetails(req: Request, res: Response, next: NextFunction) {}
+    const { rideId } = req.params;
 
-  async regenerateInviteCode(req: Request, res: Response, next: NextFunction) {}
+    const data = await this.ridesService.startRide(rideId, userId);
+
+    return res.status(200).json({ success: true, data, error: null });
+  }
+
+  async completeRide(
+    req: Request<CompleteRide, {}, {}>,
+    res: Response,
+    next: NextFunction,
+  ) {
+    if (!req.user) {
+      return res
+        .status(401)
+        .json({ success: false, data: null, error: "FORBIDDEN" });
+    }
+
+    const { userId } = req.user;
+
+    const { rideId } = req.params;
+
+    const data = await this.ridesService.completeRide(rideId, userId);
+
+    return res.status(200).json({ success: true, data, error: null });
+  }
+
+  async cancelRide(
+    req: Request<CancelRide, {}, {}>,
+    res: Response,
+    next: NextFunction,
+  ) {
+    if (!req.user) {
+      return res
+        .status(401)
+        .json({ success: false, data: null, error: "FORBIDDEN" });
+    }
+
+    const { userId } = req.user;
+
+    const { rideId } = req.params;
+
+    const data = await this.ridesService.cancelRide(rideId, userId);
+
+    return res.status(200).json({ success: true, data, error: null });
+  }
+
+  async updateRideDetails(
+    req: Request<UpdateRideDetailsParams, {}, UpdateRideDetailsBody>,
+    res: Response,
+    next: NextFunction,
+  ) {
+    if (!req.user) {
+      return res
+        .status(401)
+        .json({ success: false, data: null, error: "FORBIDDEN" });
+    }
+
+    const { userId } = req.user;
+    const { rideId } = req.params;
+    const payload = req.body;
+
+    const data = await this.ridesService.updateRideDetails(
+      rideId,
+      payload,
+      userId,
+    );
+
+    return res.status(200).json({ success: true, data, error: null });
+  }
+
+  async regenerateInviteCode(
+    req: Request<RegenrateInviteCodeParams, {}, {}>,
+    res: Response,
+    next: NextFunction,
+  ) {
+    if (!req.user) {
+      return res
+        .status(401)
+        .json({ success: false, data: null, error: "UNAUTHORIZED" });
+    }
+
+    const { userId } = req.user;
+    const { rideId } = req.params;
+
+    const data = await this.ridesService.regenerateCode(rideId, userId);
+
+    return res.status(200).json({ success: true, data, error: null });
+  }
 }

@@ -1,5 +1,6 @@
 import {
   ActiveRide,
+  CancelledRide,
   CompletedRide,
   RemovedUser,
   RideDestination,
@@ -32,14 +33,16 @@ export interface IRidesRepository {
 
   leaveRide(rideId: string, userId: string): Promise<RemovedUser | null>;
 
-  //   startRide(rideId: string): Promise<ActiveRide | null>;
+  startRide(rideId: string): Promise<ActiveRide | null>;
 
-  //   completeRide(rideId: string): Promise<CompletedRide | null>;
+  completeRide(rideId: string): Promise<CompletedRide | null>;
 
-  //   updateRideDetails(
-  //     rideId: string,
-  //     payload: { name: string; destination: RideDestination },
-  //   ): Promise<RideDetails>;
+  cancelRide(rideId: string): Promise<CancelledRide | null>;
 
-  //   updateInviteCode(rideId: string, inviteCode: string): Promise<RideDetails>;
+  updateRideDetails(
+    rideId: string,
+    payload: { rideName: string; destination: RideDestination },
+  ): Promise<RideDetails>;
+
+  updateInviteCode(rideId: string, inviteCode: string): Promise<RideDetails>;
 }

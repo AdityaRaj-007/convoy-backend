@@ -1,6 +1,10 @@
+import { string } from "zod";
 import { PrismaClient } from "../../../generated/prisma/client";
 import { IRidesRepository } from "../rides.repository";
 import {
+  ActiveRide,
+  CancelledRide,
+  CompletedRide,
   RemovedUser,
   RideDestination,
   RideDetails,
@@ -203,22 +207,104 @@ export class PrismaRidesRepository implements IRidesRepository {
   }
 
   async leaveRide(rideId: string, userId: string): Promise<RemovedUser | null> {
-    const data = await this.db.rideMembership.delete({
-      where: { rideId_userId: { rideId, userId } },
-      omit: {
-        rideId: true,
-        userId: true,
-        status: true,
-        role: true,
-        createdAt: true,
-      },
-      include: { user: { select: { name: true, id: true } } },
+    const data = await this.db.$transaction(async (tx) => {
+      const membership = await tx.rideMembership.findUnique({
+        where: { rideId_userId: { rideId, userId } },
+        omit: { rideId: true, userId: true, createdAt: true, status: true },
+        include: { user: { select: { id: true, name: true } } },
+      });
+
+      if (!membership) {
+        throw new Error("NOT_A_RIDE_MEMBER");
+      }
+
+      await tx.rideMembership.delete({
+        where: { rideId_userId: { rideId, userId } },
+      });
+
+      if (membership.role === "OWNER") {
+        const nextUser = await tx.rideMembership.findFirst({
+          where: { rideId, status: "ACTIVE" },
+          orderBy: { createdAt: "asc" },
+          select: { userId: true },
+        });
+
+        if (!nextUser) {
+          await tx.ride.update({
+            where: { id: rideId },
+            data: { status: "CANCELLED" },
+          });
+          return null;
+        }
+
+        await tx.rideMembership.update({
+          where: { rideId_userId: { rideId, userId: nextUser.userId } },
+          data: { role: "OWNER" },
+        });
+      }
+
+      return membership.user;
     });
 
-    if (!data) {
-      return null;
-    }
+    return data;
+  }
 
-    return { name: data.user.name, id: data.user.id };
+  async startRide(rideId: string): Promise<ActiveRide | null> {
+    return await this.db.ride.update({
+      where: { id: rideId },
+      data: { status: "ACTIVE" },
+      select: { id: true, status: true, name: true },
+    });
+  }
+
+  async completeRide(rideId: string): Promise<CompletedRide | null> {
+    return await this.db.ride.update({
+      where: { id: rideId },
+      data: { status: "COMPLETED" },
+      select: { id: true, name: true, status: true },
+    });
+  }
+
+  async cancelRide(rideId: string): Promise<CancelledRide | null> {
+    return await this.db.ride.update({
+      where: { id: rideId },
+      data: { status: "CANCELLED" },
+      select: { id: true, name: true, status: true },
+    });
+  }
+
+  async updateRideDetails(
+    rideId: string,
+    payload: { rideName: string; destination: RideDestination },
+  ): Promise<RideDetails> {
+    const data = await this.db.ride.update({
+      where: { id: rideId },
+      data: { payload },
+      omit: { createdAt: true, createdBy: true },
+    });
+
+    return {
+      rideId: data.id,
+      inviteCode: data.inviteCode,
+      destination: data.destination as RideDestination,
+      status: data.status,
+    };
+  }
+
+  async updateInviteCode(
+    rideId: string,
+    inviteCode: string,
+  ): Promise<RideDetails> {
+    const data = await this.db.ride.update({
+      where: { id: rideId },
+      data: { inviteCode },
+    });
+
+    return {
+      rideId: data.id,
+      inviteCode: data.inviteCode,
+      destination: data.destination as RideDestination,
+      status: data.status,
+    };
   }
 }

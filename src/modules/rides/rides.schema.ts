@@ -38,7 +38,12 @@ export const UpdateRideStatusSchema = z.object({
 
 export const UpdateRideDetailsBodySchema = z.object({
   rideName: z.string() || null,
-  destination: z.object() || null,
+  destination:
+    z.object({
+      name: z.string() || null,
+      lat: z.number(),
+      long: z.number(),
+    }) || null,
 });
 
 export const UpdateRideDetailsParamsSchema = z.object({

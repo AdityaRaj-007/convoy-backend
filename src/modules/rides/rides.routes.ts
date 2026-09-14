@@ -27,6 +27,7 @@ import {
   UpdateRideDetailsParams,
   UpdateRideDetailsBody,
   FetchMembersParams,
+  RegenrateInviteCodeParams,
 } from "./rides.types";
 
 const router = Router();
@@ -93,7 +94,7 @@ router.post<CompleteRide, {}, {}>(
 router.post<CancelRide, {}, {}>(
   "/:rideId/cancel",
   validate({ params: UpdateRideStatusSchema }),
-  asyncHandler(ridesController.completeRide.bind(ridesController)),
+  asyncHandler(ridesController.cancelRide.bind(ridesController)),
 );
 
 router.patch<UpdateRideDetailsParams, {}, UpdateRideDetailsBody>(
@@ -105,8 +106,9 @@ router.patch<UpdateRideDetailsParams, {}, UpdateRideDetailsBody>(
   asyncHandler(ridesController.updateRideDetails.bind(ridesController)),
 );
 
-router.post(
+router.post<RegenrateInviteCodeParams, {}, {}>(
   "/:rideId/invite-code/regenerate",
   validate({ params: RegenrateInviteCodeSchema }),
+  asyncHandler(ridesController.regenerateInviteCode.bind(ridesController)),
 );
 export default router;
