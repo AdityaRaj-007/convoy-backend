@@ -41,6 +41,11 @@ router.post<{}, {}, CreateRideBody>(
 );
 
 router.get(
+  "/rides",
+  asyncHandler(ridesController.getUserRides.bind(ridesController)),
+);
+
+router.get(
   "/active",
   asyncHandler(ridesController.getActiveRide.bind(ridesController)),
 );

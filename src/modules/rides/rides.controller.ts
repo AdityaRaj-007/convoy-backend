@@ -43,6 +43,18 @@ export class RidesController {
     return res.status(201).json({ success: true, data, error: null });
   }
 
+  async getUserRides(req: Request, res: Response) {
+    if (!req.user) {
+      return res
+        .status(401)
+        .json({ success: false, data: null, error: "UNAUTHORIZED" });
+    }
+
+    const { userId } = req.user;
+    const data = await this.ridesService.userRides(userId);
+
+    return res.status(200).json({ success: true, data, error: null });
+  }
   async getActiveRide(req: Request, res: Response, next: NextFunction) {
     if (!req.user) {
       return res

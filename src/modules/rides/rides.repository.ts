@@ -19,6 +19,8 @@ export interface IRidesRepository {
     inviteCode: string,
   ): Promise<RideDetails>;
 
+  userRides(userId: string): Promise<CurrentRideDetails[]>;
+
   activeRides(userId: string): Promise<CurrentRideDetails[]>;
 
   join(userId: string, inviteCode: string): Promise<RideDetails | null>;

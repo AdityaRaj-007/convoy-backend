@@ -14,9 +14,15 @@ export class RidesService {
 
     const activeRides = await this.ridesRepository.activeRides(userId);
 
+    const currentRides = await this.ridesRepository.userRides(userId);
+
     console.log("Active Ride Lists : " + activeRides + typeof activeRides);
     if (activeRides.length > 0) {
       throw new Error("ACTIVE_RIDE_EXISTS");
+    }
+
+    if (currentRides.length > 0) {
+      throw new Error("RIDE_EXISTS");
     }
 
     const data = await this.ridesRepository.create(
@@ -27,6 +33,10 @@ export class RidesService {
     );
 
     return data;
+  }
+
+  async userRides(userId: string) {
+    return this.ridesRepository.userRides(userId);
   }
 
   async userActiveRides(userId: string) {
@@ -250,7 +260,13 @@ export class RidesService {
       throw new Error("RIDE_DOES_NOT_EXISTS");
     }
 
-    if (rideDetails.createdBy !== userId) {
+    const currentOwner = await this.ridesRepository.currentOwnerOfARide(rideId);
+
+    if (!currentOwner) {
+      throw new Error("INVALID_REQUEST");
+    }
+
+    if (currentOwner.userId !== userId) {
       throw new Error("FORBIDDEN");
     }
 

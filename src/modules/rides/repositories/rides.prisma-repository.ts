@@ -57,12 +57,10 @@ export class PrismaRidesRepository implements IRidesRepository {
     return data;
   }
 
-  async activeRides(userId: string): Promise<CurrentRideDetails[]> {
-    // TODO
-    // Fetch the rideMembership role as well
+  async userRides(userId: string): Promise<CurrentRideDetails[]> {
     const rides = await this.db.ride.findMany({
       where: {
-        status: { in: ["ACTIVE"] },
+        status: "CREATED",
         members: { some: { userId, status: { in: ["ACTIVE", "PENDING"] } } },
       },
       select: {
@@ -72,6 +70,39 @@ export class PrismaRidesRepository implements IRidesRepository {
         status: true,
         members: {
           where: { userId, status: { in: ["ACTIVE", "PENDING"] } },
+          select: { role: true, status: true },
+          take: 1,
+        },
+      },
+    });
+
+    console.log("Ride List : " + rides);
+
+    return rides.map((ride) => ({
+      rideId: ride.id,
+      inviteCode: ride.inviteCode,
+      destination: ride.destination as RideDestination,
+      status: ride.status,
+      membership: {
+        role: ride.members[0]!.role,
+        status: ride.members[0]!.status,
+      },
+    }));
+  }
+
+  async activeRides(userId: string): Promise<CurrentRideDetails[]> {
+    const rides = await this.db.ride.findMany({
+      where: {
+        status: "ACTIVE",
+        members: { some: { userId, status: "ACTIVE" } },
+      },
+      select: {
+        id: true,
+        inviteCode: true,
+        destination: true,
+        status: true,
+        members: {
+          where: { userId, status: "ACTIVE" },
           select: { role: true, status: true },
           take: 1,
         },
@@ -226,7 +257,7 @@ export class PrismaRidesRepository implements IRidesRepository {
     userId: string,
   ): Promise<RemovedUser | null> {
     const data = await this.db.$transaction(async (tx) => {
-      const isMember = await this.db.rideMembership.findUnique({
+      const isMember = await tx.rideMembership.findUnique({
         where: { rideId_userId: { rideId, userId } },
       });
 
@@ -234,7 +265,7 @@ export class PrismaRidesRepository implements IRidesRepository {
         return null;
       }
 
-      const removedUser = await this.db.rideMembership.delete({
+      const removedUser = await tx.rideMembership.delete({
         where: { rideId_userId: { rideId, userId } },
         include: { user: { select: { id: true, name: true } } },
       });
