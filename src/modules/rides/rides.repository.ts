@@ -2,6 +2,7 @@ import {
   ActiveRide,
   CancelledRide,
   CompletedRide,
+  CurrentRideDetails,
   RemovedUser,
   RequestDetails,
   RideDestination,
@@ -18,7 +19,7 @@ export interface IRidesRepository {
     inviteCode: string,
   ): Promise<RideDetails>;
 
-  activeRides(userId: string): Promise<RideDetails[]>;
+  activeRides(userId: string): Promise<CurrentRideDetails[]>;
 
   join(userId: string, inviteCode: string): Promise<RideDetails | null>;
 
@@ -50,4 +51,6 @@ export interface IRidesRepository {
   pendingRequests(rideId: string): Promise<RequestDetails[]>;
 
   isMember(rideId: string, userId: string): Promise<RideMembership | null>;
+
+  currentOwnerOfARide(rideId: string): Promise<RideMembership | null>;
 }

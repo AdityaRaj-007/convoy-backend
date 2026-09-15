@@ -60,8 +60,18 @@ export class RidesService {
       throw new Error("RIDE_DOES_NOT_EXISTS");
     }
 
-    if (rideDetails.createdBy !== ownerId) {
+    const currentOwner = await this.ridesRepository.currentOwnerOfARide(rideId);
+
+    if (!currentOwner) {
+      throw new Error("INVALID_REQUEST");
+    }
+
+    if (ownerId !== currentOwner.userId) {
       throw new Error("FORBIDDEN");
+    }
+
+    if (["COMPLETED", "CANCELLED"].includes(rideDetails.status)) {
+      throw new Error("INVALID_RIDE_STATUS");
     }
 
     const data = await this.ridesRepository.acceptRequest(rideId, userId);
@@ -80,8 +90,18 @@ export class RidesService {
       throw new Error("RIDE_DOES_NOT_EXISTS");
     }
 
-    if (rideDetails.createdBy !== ownerId) {
+    const currentOwner = await this.ridesRepository.currentOwnerOfARide(rideId);
+
+    if (!currentOwner) {
+      throw new Error("INVALID_REQUEST");
+    }
+
+    if (ownerId !== currentOwner.userId) {
       throw new Error("FORBIDDEN");
+    }
+
+    if (["COMPLETED", "CANCELLED"].includes(rideDetails.status)) {
+      throw new Error("INVALID_RIDE_STATUS");
     }
 
     const data = await this.ridesRepository.rejectRequest(rideId, userId);
@@ -100,7 +120,13 @@ export class RidesService {
       throw new Error("RIDE_DOES_NOT_EXISTS");
     }
 
-    if (rideDetails.createdBy !== ownerId) {
+    const currentOwner = await this.ridesRepository.currentOwnerOfARide(rideId);
+
+    if (!currentOwner) {
+      throw new Error("INVALID_REQUEST");
+    }
+
+    if (ownerId !== currentOwner.userId) {
       throw new Error("FORBIDDEN");
     }
 
@@ -139,7 +165,13 @@ export class RidesService {
       throw new Error("RIDE_DOES_NOT_EXISTS");
     }
 
-    if (rideDetails.createdBy !== userId) {
+    const currentOwner = await this.ridesRepository.currentOwnerOfARide(rideId);
+
+    if (!currentOwner) {
+      throw new Error("INVALID_REQUEST");
+    }
+
+    if (userId !== currentOwner.userId) {
       throw new Error("FORBIDDEN");
     }
 
@@ -159,7 +191,13 @@ export class RidesService {
       throw new Error("RIDE_DOES_NOT_EXISTS");
     }
 
-    if (rideDetails.createdBy !== userId) {
+    const currentOwner = await this.ridesRepository.currentOwnerOfARide(rideId);
+
+    if (!currentOwner) {
+      throw new Error("INVALID_REQUEST");
+    }
+
+    if (userId !== currentOwner.userId) {
       throw new Error("FORBIDDEN");
     }
 
@@ -179,7 +217,13 @@ export class RidesService {
       throw new Error("RIDE_DOES_NOT_EXISTS");
     }
 
-    if (rideDetails.createdBy !== userId) {
+    const currentOwner = await this.ridesRepository.currentOwnerOfARide(rideId);
+
+    if (!currentOwner) {
+      throw new Error("INVALID_REQUEST");
+    }
+
+    if (userId !== currentOwner.userId) {
       throw new Error("FORBIDDEN");
     }
 
@@ -226,7 +270,13 @@ export class RidesService {
       throw new Error("RIDE_DOES_NOT_EXISTS");
     }
 
-    if (rideDetails.createdBy !== userId) {
+    const currentOwner = await this.ridesRepository.currentOwnerOfARide(rideId);
+
+    if (!currentOwner) {
+      throw new Error("INVALID_REQUEST");
+    }
+
+    if (userId !== currentOwner.userId) {
       throw new Error("FORBIDDEN");
     }
 
@@ -251,7 +301,13 @@ export class RidesService {
       throw new Error("RIDE_DOES_NOT_EXISTS");
     }
 
-    if (rideDetails.createdBy !== userId) {
+    const currentOwner = await this.ridesRepository.currentOwnerOfARide(rideId);
+
+    if (!currentOwner) {
+      throw new Error("INVALID_REQUEST");
+    }
+
+    if (userId !== currentOwner.userId) {
       throw new Error("FORBIDDEN");
     }
 

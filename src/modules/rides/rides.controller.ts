@@ -103,7 +103,7 @@ export class RidesController {
     if (!req.user) {
       return res
         .status(401)
-        .json({ sucess: false, data: null, error: "UNAUTHORIZED" });
+        .json({ success: false, data: null, error: "UNAUTHORIZED" });
     }
 
     const { userId: ownerId } = req.user;
@@ -127,7 +127,7 @@ export class RidesController {
     if (!req.user) {
       return res
         .status(401)
-        .json({ sucess: false, data: null, error: "UNAUTHORIZED" });
+        .json({ success: false, data: null, error: "UNAUTHORIZED" });
     }
 
     const { userId: ownerId } = req.user;

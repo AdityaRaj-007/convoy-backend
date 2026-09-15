@@ -4,6 +4,7 @@ import {
   ActiveRide,
   CancelledRide,
   CompletedRide,
+  CurrentRideDetails,
   RemovedUser,
   RequestDetails,
   RideDestination,
@@ -56,16 +57,25 @@ export class PrismaRidesRepository implements IRidesRepository {
     return data;
   }
 
-  async activeRides(userId: string): Promise<RideDetails[]> {
+  async activeRides(userId: string): Promise<CurrentRideDetails[]> {
     // TODO
     // Fetch the rideMembership role as well
     const rides = await this.db.ride.findMany({
       where: {
-        status: "ACTIVE",
-        members: { some: { userId, status: "ACTIVE" } },
+        status: { in: ["ACTIVE"] },
+        members: { some: { userId, status: { in: ["ACTIVE", "PENDING"] } } },
       },
-      include: { members: { where: { userId, status: "ACTIVE" } } },
-      omit: { createdAt: true },
+      select: {
+        id: true,
+        inviteCode: true,
+        destination: true,
+        status: true,
+        members: {
+          where: { userId, status: { in: ["ACTIVE", "PENDING"] } },
+          select: { role: true, status: true },
+          take: 1,
+        },
+      },
     });
 
     console.log("Ride List : " + rides);
@@ -75,6 +85,10 @@ export class PrismaRidesRepository implements IRidesRepository {
       inviteCode: ride.inviteCode,
       destination: ride.destination as RideDestination,
       status: ride.status,
+      membership: {
+        role: ride.members[0]!.role,
+        status: ride.members[0]!.status,
+      },
     }));
   }
 
@@ -211,23 +225,24 @@ export class PrismaRidesRepository implements IRidesRepository {
     rideId: string,
     userId: string,
   ): Promise<RemovedUser | null> {
-    const data = await this.db.rideMembership.delete({
-      where: { rideId_userId: { rideId, userId } },
-      omit: {
-        rideId: true,
-        userId: true,
-        status: true,
-        role: true,
-        createdAt: true,
-      },
-      include: { user: { select: { name: true, id: true } } },
+    const data = await this.db.$transaction(async (tx) => {
+      const isMember = await this.db.rideMembership.findUnique({
+        where: { rideId_userId: { rideId, userId } },
+      });
+
+      if (!isMember) {
+        return null;
+      }
+
+      const removedUser = await this.db.rideMembership.delete({
+        where: { rideId_userId: { rideId, userId } },
+        include: { user: { select: { id: true, name: true } } },
+      });
+
+      return { name: removedUser.user.name, id: removedUser.user.id };
     });
 
-    if (!data) {
-      return null;
-    }
-
-    return { name: data.user.name, id: data.user.id };
+    return data;
   }
 
   async leaveRide(rideId: string, userId: string): Promise<RemovedUser | null> {
@@ -257,6 +272,10 @@ export class PrismaRidesRepository implements IRidesRepository {
           await tx.ride.update({
             where: { id: rideId },
             data: { status: "CANCELLED" },
+          });
+
+          await tx.rideMembership.deleteMany({
+            where: { rideId, status: "PENDING" },
           });
           return null;
         }
@@ -293,8 +312,12 @@ export class PrismaRidesRepository implements IRidesRepository {
       }
 
       await tx.rideMembership.updateMany({
-        where: { rideId },
+        where: { rideId, status: "ACTIVE" },
         data: { status: "COMPLETED" },
+      });
+
+      await tx.rideMembership.deleteMany({
+        where: { rideId, status: "PENDING" },
       });
 
       return {
@@ -318,9 +341,8 @@ export class PrismaRidesRepository implements IRidesRepository {
         return null;
       }
 
-      await tx.rideMembership.updateMany({
+      await tx.rideMembership.deleteMany({
         where: { rideId },
-        data: { status: "COMPLETED" },
       });
 
       return {
@@ -369,10 +391,18 @@ export class PrismaRidesRepository implements IRidesRepository {
   }
 
   async pendingRequests(rideId: string): Promise<RequestDetails[]> {
-    return await this.db.rideMembership.findMany({
+    const requests = await this.db.rideMembership.findMany({
       where: { rideId, status: "PENDING" },
-      select: { userId: true, role: true, status: true },
+      omit: { createdAt: true, role: true, rideId: true },
+      include: { user: { select: { name: true, phoneNumber: true } } },
     });
+
+    return requests.map((request) => ({
+      userId: request.userId,
+      status: request.status,
+      name: request.user.name,
+      phoneNumber: request.user.phoneNumber,
+    }));
   }
 
   async isMember(
@@ -381,6 +411,13 @@ export class PrismaRidesRepository implements IRidesRepository {
   ): Promise<RideMembership | null> {
     return await this.db.rideMembership.findUnique({
       where: { rideId_userId: { rideId, userId } },
+      select: { userId: true, role: true, status: true },
+    });
+  }
+
+  async currentOwnerOfARide(rideId: string): Promise<RideMembership | null> {
+    return await this.db.rideMembership.findFirst({
+      where: { rideId, role: "OWNER", status: "ACTIVE" },
       select: { userId: true, role: true, status: true },
     });
   }

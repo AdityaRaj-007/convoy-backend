@@ -68,6 +68,11 @@ export type CompletedRide = { name: string; status: RideStatus; id: string };
 export type CancelledRide = { name: string; status: RideStatus; id: string };
 export type RequestDetails = {
   userId: string;
-  role: Role;
   status: MembershipStatus;
+  name: string | null;
+  phoneNumber: string;
+};
+
+export type CurrentRideDetails = RideDetails & {
+  membership: { role: Role; status: MembershipStatus };
 };
