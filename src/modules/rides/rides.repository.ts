@@ -3,6 +3,7 @@ import {
   CancelledRide,
   CompletedRide,
   RemovedUser,
+  RequestDetails,
   RideDestination,
   RideDetails,
   RideMembers,
@@ -45,4 +46,8 @@ export interface IRidesRepository {
   ): Promise<RideDetails>;
 
   updateInviteCode(rideId: string, inviteCode: string): Promise<RideDetails>;
+
+  pendingRequests(rideId: string): Promise<RequestDetails[]>;
+
+  isMember(rideId: string, userId: string): Promise<RideMembership | null>;
 }

@@ -2,7 +2,7 @@ import z from "zod";
 
 export const CreateRidesSchema = z.object({
   destination: z.object({
-    name: z.string() || null,
+    name: z.string().nullable(),
     lat: z.number(),
     long: z.number(),
   }),
@@ -37,13 +37,12 @@ export const UpdateRideStatusSchema = z.object({
 });
 
 export const UpdateRideDetailsBodySchema = z.object({
-  rideName: z.string() || null,
-  destination:
-    z.object({
-      name: z.string() || null,
-      lat: z.number(),
-      long: z.number(),
-    }) || null,
+  rideName: z.string(),
+  destination: z.object({
+    name: z.string().nullable(),
+    lat: z.number(),
+    long: z.number(),
+  }),
 });
 
 export const UpdateRideDetailsParamsSchema = z.object({
@@ -51,5 +50,9 @@ export const UpdateRideDetailsParamsSchema = z.object({
 });
 
 export const RegenrateInviteCodeSchema = z.object({
+  rideId: z.string(),
+});
+
+export const FetchRequestsParamsSchema = z.object({
   rideId: z.string(),
 });

@@ -6,9 +6,10 @@ import {
   CompleteRide,
   CreateRideBody,
   FetchMembersParams,
+  FetchRequestParams,
   JoinRideBody,
   LeaveRide,
-  RegenrateInviteCodeParams,
+  RegenerateInviteCodeParams,
   RejectRideRequest,
   RemoveUserFromRide,
   StartRide,
@@ -81,9 +82,15 @@ export class RidesController {
     res: Response,
     next: NextFunction,
   ) {
+    if (!req.user) {
+      return res
+        .status(401)
+        .json({ success: false, data: null, error: "UNAUTHORIZED" });
+    }
+    const { userId } = req.user;
     const { rideId } = req.params;
 
-    const data = await this.ridesService.rideMembers(rideId);
+    const data = await this.ridesService.rideMembers(rideId, userId);
 
     return res.status(200).json({ success: true, data, error: null });
   }
@@ -202,7 +209,7 @@ export class RidesController {
     if (!req.user) {
       return res
         .status(401)
-        .json({ success: false, data: null, error: "FORBIDDEN" });
+        .json({ success: false, data: null, error: "UNAUTHORIZED" });
     }
 
     const { userId } = req.user;
@@ -222,7 +229,7 @@ export class RidesController {
     if (!req.user) {
       return res
         .status(401)
-        .json({ success: false, data: null, error: "FORBIDDEN" });
+        .json({ success: false, data: null, error: "UNAUTHORIZED" });
     }
 
     const { userId } = req.user;
@@ -242,7 +249,7 @@ export class RidesController {
     if (!req.user) {
       return res
         .status(401)
-        .json({ success: false, data: null, error: "FORBIDDEN" });
+        .json({ success: false, data: null, error: "UNAUTHORIZED" });
     }
 
     const { userId } = req.user;
@@ -259,7 +266,7 @@ export class RidesController {
   }
 
   async regenerateInviteCode(
-    req: Request<RegenrateInviteCodeParams, {}, {}>,
+    req: Request<RegenerateInviteCodeParams, {}, {}>,
     res: Response,
     next: NextFunction,
   ) {
@@ -273,6 +280,23 @@ export class RidesController {
     const { rideId } = req.params;
 
     const data = await this.ridesService.regenerateCode(rideId, userId);
+
+    return res.status(200).json({ success: true, data, error: null });
+  }
+
+  async fetchPendingRequests(
+    req: Request<FetchRequestParams, {}, {}>,
+    res: Response,
+  ) {
+    if (!req.user) {
+      return res
+        .status(401)
+        .json({ success: false, data: null, error: "UNAUTHORIZED" });
+    }
+    const { userId } = req.user;
+    const { rideId } = req.params;
+
+    const data = await this.ridesService.pendingRequests(rideId, userId);
 
     return res.status(200).json({ success: true, data, error: null });
   }

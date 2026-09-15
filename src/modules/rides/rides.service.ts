@@ -15,7 +15,7 @@ export class RidesService {
     const activeRides = await this.ridesRepository.activeRides(userId);
 
     console.log("Active Ride Lists : " + activeRides + typeof activeRides);
-    if (activeRides === null) {
+    if (activeRides.length > 0) {
       throw new Error("ACTIVE_RIDE_EXISTS");
     }
 
@@ -33,10 +33,6 @@ export class RidesService {
     const activeRides = await this.ridesRepository.activeRides(userId);
     console.log("Active Rides : " + activeRides);
 
-    if (!activeRides) {
-      return {};
-    }
-
     return activeRides;
   }
 
@@ -44,7 +40,16 @@ export class RidesService {
     return await this.ridesRepository.join(userId, inviteCode);
   }
 
-  async rideMembers(rideId: string) {
+  async rideMembers(rideId: string, userId: string) {
+    const isMember = await this.ridesRepository.isMember(rideId, userId);
+
+    if (!isMember) {
+      throw new Error("NOT_A_RIDE_MEMBER");
+    }
+
+    if (isMember.status !== "ACTIVE") {
+      throw new Error("NOT_PART_OF_RIDE");
+    }
     return await this.ridesRepository.rideMembers(rideId);
   }
 
@@ -79,7 +84,7 @@ export class RidesService {
       throw new Error("FORBIDDEN");
     }
 
-    const data = await this.ridesRepository.acceptRequest(rideId, userId);
+    const data = await this.ridesRepository.rejectRequest(rideId, userId);
 
     if (!data) {
       throw new Error("NOT_A_MEMBER");
@@ -98,6 +103,14 @@ export class RidesService {
     if (rideDetails.createdBy !== ownerId) {
       throw new Error("FORBIDDEN");
     }
+
+    if (["COMPLETED", "CANCELLED"].includes(rideDetails.status)) {
+      throw new Error("INVALID_STATUS");
+    }
+
+    if (userId === ownerId) {
+      throw new Error("CANNOT_REMOVE_SELF");
+    }
     return await this.ridesRepository.removeUser(rideId, userId);
   }
 
@@ -106,6 +119,14 @@ export class RidesService {
 
     if (!rideDetails) {
       throw new Error("RIDE_DOES_NOT_EXISTS");
+    }
+
+    if (rideDetails.status === "COMPLETED") {
+      throw new Error("INVALID_STATUS");
+    }
+
+    if (rideDetails.status === "CANCELLED") {
+      throw new Error("INVALID_STATUS");
     }
 
     return await this.ridesRepository.leaveRide(rideId, userId);
@@ -121,6 +142,14 @@ export class RidesService {
     if (rideDetails.createdBy !== userId) {
       throw new Error("FORBIDDEN");
     }
+
+    if (rideDetails.status !== "CREATED") {
+      throw new Error("INVALID_RIDE_STATUS");
+    }
+
+    const data = await this.ridesRepository.startRide(rideId);
+
+    return data;
   }
 
   async completeRide(rideId: string, userId: string) {
@@ -132,6 +161,10 @@ export class RidesService {
 
     if (rideDetails.createdBy !== userId) {
       throw new Error("FORBIDDEN");
+    }
+
+    if (rideDetails.status !== "ACTIVE") {
+      throw new Error("INVALID_RIDE_STATUS");
     }
 
     const data = await this.ridesRepository.completeRide(rideId);
@@ -148,6 +181,10 @@ export class RidesService {
 
     if (rideDetails.createdBy !== userId) {
       throw new Error("FORBIDDEN");
+    }
+
+    if (!["ACTIVE", "CREATED"].includes(rideDetails.status)) {
+      throw new Error("INAVLID_RIDE_STATUS");
     }
 
     const data = await this.ridesRepository.cancelRide(rideId);
@@ -173,6 +210,10 @@ export class RidesService {
       throw new Error("FORBIDDEN");
     }
 
+    if (["CANCELLED", "COMPLETED"].includes(rideDetails.status)) {
+      throw new Error("INVALID_RIDE_STATUS");
+    }
+
     const data = await this.ridesRepository.updateRideDetails(rideId, payload);
 
     return data;
@@ -189,12 +230,36 @@ export class RidesService {
       throw new Error("FORBIDDEN");
     }
 
+    if (["COMPLETED", "CANCELLED"].includes(rideDetails.status)) {
+      throw new Error("INVALID_STATUS");
+    }
+
     const newInviteCode = generate();
 
     const data = await this.ridesRepository.updateInviteCode(
       rideId,
       newInviteCode,
     );
+
+    return data;
+  }
+
+  async pendingRequests(rideId: string, userId: string) {
+    const rideDetails = await this.ridesRepository.rideDetails(rideId);
+
+    if (!rideDetails) {
+      throw new Error("RIDE_DOES_NOT_EXISTS");
+    }
+
+    if (rideDetails.createdBy !== userId) {
+      throw new Error("FORBIDDEN");
+    }
+
+    if (["COMPLETED", "CANCELLED"].includes(rideDetails.status)) {
+      throw new Error("INVALID_STATUS");
+    }
+
+    const data = await this.ridesRepository.pendingRequests(rideId);
 
     return data;
   }

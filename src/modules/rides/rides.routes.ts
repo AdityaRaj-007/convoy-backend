@@ -11,6 +11,7 @@ import {
   UpdateRideDetailsParamsSchema,
   RegenrateInviteCodeSchema,
   FetchMembersSchema,
+  FetchRequestsParamsSchema,
 } from "./rides.schema";
 import { ridesController } from "../../shared/container";
 import { asyncHandler } from "../../utils/async-handler";
@@ -27,7 +28,8 @@ import {
   UpdateRideDetailsParams,
   UpdateRideDetailsBody,
   FetchMembersParams,
-  RegenrateInviteCodeParams,
+  RegenerateInviteCodeParams,
+  FetchRequestParams,
 } from "./rides.types";
 
 const router = Router();
@@ -106,9 +108,15 @@ router.patch<UpdateRideDetailsParams, {}, UpdateRideDetailsBody>(
   asyncHandler(ridesController.updateRideDetails.bind(ridesController)),
 );
 
-router.post<RegenrateInviteCodeParams, {}, {}>(
+router.post<RegenerateInviteCodeParams, {}, {}>(
   "/:rideId/invite-code/regenerate",
   validate({ params: RegenrateInviteCodeSchema }),
   asyncHandler(ridesController.regenerateInviteCode.bind(ridesController)),
+);
+
+router.get<FetchRequestParams, {}, {}>(
+  "/:rideId/members/requests",
+  validate({ params: FetchRequestsParamsSchema }),
+  asyncHandler(ridesController.fetchPendingRequests.bind(ridesController)),
 );
 export default router;
