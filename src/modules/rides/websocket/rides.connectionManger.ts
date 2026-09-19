@@ -26,7 +26,7 @@ export class RideConnectionManager {
 
     room.delete(context);
   }
-  getConnections(rideId: string) {
+  getConnections(rideId: string): Set<ConnectionContext> {
     const room = this.rooms.get(rideId);
 
     if (!room) {

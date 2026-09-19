@@ -76,3 +76,10 @@ export type RequestDetails = {
 export type CurrentRideDetails = RideDetails & {
   membership: { role: Role; status: MembershipStatus };
 };
+
+export type LocationUpdate = {
+  userId: string;
+  latitude: number;
+  longitude: number;
+  timestamp: number;
+};

@@ -56,3 +56,11 @@ export const RegenrateInviteCodeSchema = z.object({
 export const FetchRequestsParamsSchema = z.object({
   rideId: z.string(),
 });
+
+export const WebsocketMessageSchema = z.object({
+  type: z.string(),
+  payload: z.object({
+    latitude: z.number(),
+    longitude: z.number(),
+  }),
+});
