@@ -17,12 +17,13 @@ export class LocationService {
       longitude: payload.longitude,
       timestamp: Date.now(),
     };
+
     await redis.hset(
       `ride:location:${rideId}`,
       userId,
       JSON.stringify(location),
     );
-
+    console.log("Location updated successfully : " + location);
     // call the broadcast function to send it to other users
     const broadcastMessage = { userId, ...location };
     this.eventBroadcaster.broadcastMessage(rideId, broadcastMessage);

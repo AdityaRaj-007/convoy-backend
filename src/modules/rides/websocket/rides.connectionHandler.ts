@@ -41,6 +41,7 @@ export class RideConnectionHandler {
     try {
       const msg = JSON.parse(message.toString());
       const parsedMessage = WebsocketMessageSchema.parse(msg);
+      console.log("Parsed Message : " + parsedMessage);
       const ws = this.context.getSocket();
       switch (parsedMessage.type) {
         case "LOCATION_UPDATE": {

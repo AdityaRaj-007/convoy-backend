@@ -1,6 +1,5 @@
 import { NextFunction, Request, Response } from "express";
-import { redis } from "../infrastructure/redis";
-import crypto from "crypto";
+import { verifyToken } from "../utils/verifyToken";
 
 export const authenticate = async (
   req: Request,
@@ -16,19 +15,7 @@ export const authenticate = async (
         .json({ success: false, data: null, error: "UNAUTHORIZED" });
     }
 
-    const [scheme, authToken] = authHeader.split(" ");
-
-    if (!authToken || scheme !== "Bearer") {
-      return res
-        .status(401)
-        .json({ success: false, data: null, error: "UNAUTHORIZED" });
-    }
-
-    const authTokenHash = crypto
-      .createHash("sha256")
-      .update(authToken)
-      .digest("hex");
-    const userId = await redis.get(`auth:access:${authTokenHash}`);
+    const userId = await verifyToken(authHeader);
 
     if (!userId) {
       return res

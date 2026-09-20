@@ -335,4 +335,12 @@ export class RidesService {
 
     return data;
   }
+
+  async findRideById(rideId: string) {
+    return await this.ridesRepository.rideDetails(rideId);
+  }
+
+  async findMembership(rideId: string, userId: string) {
+    return this.ridesRepository.isMember(rideId, userId);
+  }
 }
