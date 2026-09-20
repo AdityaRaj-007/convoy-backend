@@ -9,13 +9,18 @@ import {
 
 const PORT = 3000;
 const httpServer = http.createServer(app);
-const websocketGateway = new RideWebSocketGateway(
-  httpServer,
-  ridesService,
-  rideConnectionManger,
-  locationService,
-);
 
-httpServer.listen(PORT, () => {
-  console.log(`Server is listening on PORT : ${PORT}`);
-});
+function startServer() {
+  const websocketGateway = new RideWebSocketGateway(
+    httpServer,
+    ridesService,
+    rideConnectionManger,
+    locationService,
+  );
+
+  httpServer.listen(PORT, () => {
+    console.log(`Server is listening on PORT : ${PORT}`);
+  });
+}
+
+startServer();
