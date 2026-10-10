@@ -136,4 +136,14 @@ export class AuthService {
 
     return { accessToken, refreshToken };
   }
+
+  async getUserDetails(userId: string) {
+    const userData = await this.authRepository.findUserById(userId);
+
+    if (!userData) {
+      throw new Error("USER_DOES_NOT_EXISTS");
+    }
+
+    return userData;
+  }
 }

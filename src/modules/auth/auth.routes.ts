@@ -8,6 +8,7 @@ import {
   sendOTPSchema,
   verifyOTPSchema,
 } from "./auth.schema";
+import { authenticate } from "../../middlewares/authenticationMiddleware";
 
 const router = Router();
 
@@ -33,6 +34,12 @@ router.post(
   "/refresh",
   validate({ body: generateNewAccessTokenSchema }),
   asyncHandler(authController.generateNewAccessToken.bind(authController)),
+);
+
+router.get(
+  "/me",
+  authenticate,
+  asyncHandler(authController.getMe.bind(authController)),
 );
 
 export default router;

@@ -1,7 +1,6 @@
 import { Request, Response } from "express";
 import { AuthService } from "./auth.service";
 import { env } from "../../config/env";
-import { flattenNestedArrayItems } from "ioredis/built/replyTransformers";
 
 export class AuthController {
   private authService: AuthService;
@@ -39,14 +38,16 @@ export class AuthController {
     console.log("Refresh Token : " + refreshToken);
     res.cookie("refreshToken", refreshToken, {
       httpOnly: true,
-      secure: true,
+      secure: false,
       path: "/api/auth/refresh",
       maxAge: Number(env.refreshTokenExpiry),
     });
 
-    return res
-      .status(201)
-      .json({ success: true, data: { accessToken }, error: null });
+    return res.status(201).json({
+      success: true,
+      data: { accessToken, refreshToken },
+      error: null,
+    });
   }
 
   async generateNewAccessToken(req: Request, res: Response) {
@@ -58,6 +59,20 @@ export class AuthController {
     }
 
     const data = await this.authService.generateNewToken(refreshToken);
+
+    return res.status(200).json({ success: true, data, error: null });
+  }
+
+  async getMe(req: Request, res: Response) {
+    if (!req.user) {
+      return res
+        .status(401)
+        .json({ success: false, data: null, error: "UNAUTHORIZED" });
+    }
+
+    const { userId } = req.user;
+
+    const data = await this.authService.getUserDetails(userId);
 
     return res.status(200).json({ success: true, data, error: null });
   }
