@@ -127,6 +127,9 @@ export class AuthService {
 
     const existingUser = await this.authRepository.findUserById(userId);
 
+    console.log("User Id : ", userId);
+    console.log("Existing User : ", existingUser);
+
     if (!existingUser || userId !== existingUser.id) {
       throw new Error("UNAUTHORIZED");
     }
@@ -141,7 +144,7 @@ export class AuthService {
     const userData = await this.authRepository.findUserById(userId);
 
     if (!userData) {
-      throw new Error("USER_DOES_NOT_EXISTS");
+      throw new Error("USER_NOT_FOUND");
     }
 
     return userData;

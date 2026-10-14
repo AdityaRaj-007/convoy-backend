@@ -3,6 +3,8 @@ import { AuthController } from "../modules/auth/auth.controller";
 import { IAuthRepository } from "../modules/auth/auth.repository";
 import { AuthService } from "../modules/auth/auth.service";
 import { AuthPrismaRepository } from "../modules/auth/repositories/auth.prisma-repository";
+import { PlacesController } from "../modules/places/places.controller";
+import { PlacesService } from "../modules/places/places.service";
 import { PrismaRidesRepository } from "../modules/rides/repositories/rides.prisma-repository";
 import { RidesController } from "../modules/rides/rides.controller";
 import { IRidesRepository } from "../modules/rides/rides.repository";
@@ -26,3 +28,6 @@ export const rideMessageBroadcaster = new RideEventBroadcaster(
   rideConnectionManger,
 );
 export const locationService = new LocationService(rideMessageBroadcaster);
+
+export const placesService = new PlacesService();
+export const placesController = new PlacesController(placesService);

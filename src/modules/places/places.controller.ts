@@ -1,0 +1,43 @@
+import { Request, Response } from "express";
+import { PlacesService } from "./places.service";
+import { PlaceDetailParams, SearchPlacesParams } from "./places.types";
+
+export class PlacesController {
+  private readonly placesService: PlacesService;
+
+  constructor(placesService: PlacesService) {
+    this.placesService = placesService;
+  }
+
+  async getPlacesResult(
+    req: Request<{}, {}, {}, SearchPlacesParams>,
+    res: Response,
+  ) {
+    if (!req.user) {
+      return res
+        .status(401)
+        .json({ success: false, data: null, error: "UNAUTHORIZED" });
+    }
+    const { userId } = req.user;
+
+    const { input } = req.query;
+
+    const data = this.placesService.placesSuggestions(input);
+  }
+
+  async getPlaceDetails(
+    req: Request<{}, {}, {}, PlaceDetailParams>,
+    res: Response,
+  ) {
+    if (!req.user) {
+      return res
+        .status(401)
+        .json({ success: false, data: null, error: "UNAUTHORIZED" });
+    }
+    const { userId } = req.user;
+
+    const { placeId } = req.query;
+
+    const data = this.placesService.placeDetails(placeId);
+  }
+}
