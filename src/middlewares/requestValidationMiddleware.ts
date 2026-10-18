@@ -17,6 +17,7 @@ function formatZodError(err: ZodError) {
 
 export const validate = (schema: ValidationSchema) => {
   return async (req: Request, res: Response, next: NextFunction) => {
+    console.log("Inside request validation");
     try {
       if (schema.body) {
         const parsedReqBody = await schema.body.parseAsync(req.body);
@@ -25,7 +26,12 @@ export const validate = (schema: ValidationSchema) => {
 
       if (schema.query) {
         const parsedReqQuery = await schema.query.parseAsync(req.query);
-        req.query = parsedReqQuery as typeof req.query;
+        Object.defineProperty(req, "query", {
+          value: parsedReqQuery,
+          writable: true,
+          enumerable: true,
+          configurable: true,
+        });
       }
 
       if (schema.params) {
@@ -33,8 +39,11 @@ export const validate = (schema: ValidationSchema) => {
         req.params = parsedReqParams as typeof req.params;
       }
 
+      console.log("Request Validation is success");
+
       next();
     } catch (err) {
+      console.log(err);
       if (err instanceof ZodError) {
         console.log(formatZodError(err));
 

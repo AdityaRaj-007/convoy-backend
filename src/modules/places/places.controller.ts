@@ -18,11 +18,15 @@ export class PlacesController {
         .status(401)
         .json({ success: false, data: null, error: "UNAUTHORIZED" });
     }
-    const { userId } = req.user;
 
-    const { input } = req.query;
+    const { input, sessionToken } = req.query;
 
-    const data = this.placesService.placesSuggestions(input);
+    const data = await this.placesService.placesSuggestions(
+      input.trim(),
+      sessionToken,
+    );
+
+    return res.status(201).json({ success: true, data, error: null });
   }
 
   async getPlaceDetails(

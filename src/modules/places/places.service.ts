@@ -35,16 +35,23 @@ export class PlacesService {
       throw new Error("PLACE_SEARCH_FAILED");
     }
 
+    console.log("Response : " + response);
+
     const result = (await response.json()) as {
       suggestions?: {
-        placePrediction: { placeId: string; text: { text: string } };
+        placePrediction?: {
+          placeId: string;
+          text: { text: string };
+        };
       }[];
     };
+
+    console.log(JSON.stringify(result));
 
     return (result.suggestions ?? [])
       .filter((suggestion) => suggestion.placePrediction)
       .map((suggestion) => ({
-        placeId: suggestion.placePrediction.placeId,
+        placeId: suggestion.placePrediction!.placeId,
         description: suggestion.placePrediction!.text.text,
       }));
   }
