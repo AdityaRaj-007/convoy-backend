@@ -7,4 +7,5 @@ export const SearchPlacesSchema = z.object({
 
 export const PlaceDetailSchema = z.object({
   placeId: z.string(),
+  sessionToken: z.string().optional(),
 });

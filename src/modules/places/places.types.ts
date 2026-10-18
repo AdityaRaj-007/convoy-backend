@@ -8,3 +8,11 @@ export type PlacesSuggestion = {
   placeId: string;
   description: string;
 };
+
+export type PlaceDetails = {
+  placeId: string;
+  name: string;
+  address: string;
+  latitude: number;
+  longitude: number;
+};

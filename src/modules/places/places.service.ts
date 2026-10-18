@@ -1,5 +1,5 @@
 import { env } from "../../config/env";
-import { PlacesSuggestion } from "./places.types";
+import { PlaceDetails, PlacesSuggestion } from "./places.types";
 
 export class PlacesService {
   private readonly GOOGLE_PLACES_BASE_URL = "https://places.googleapis.com/v1";
@@ -56,5 +56,57 @@ export class PlacesService {
       }));
   }
 
-  async placeDetails(placeId: string) {}
+  async placeDetails(
+    placeId: string,
+    sessionToken?: string,
+  ): Promise<PlaceDetails> {
+    const params = new URLSearchParams();
+
+    if (sessionToken) {
+      params.set("sessionToken", sessionToken);
+    }
+
+    const query = params.toString();
+
+    const url =
+      `${this.GOOGLE_PLACES_BASE_URL}/places/${encodeURIComponent(placeId)}` +
+      (query ? `${query}` : "");
+
+    const response = await fetch(url, {
+      headers: {
+        "X-Goog-Api-Key": `${env.googleMapApiKey}`,
+        "X-Goog-FieldMask": "id,displayName,formattedAddress,location",
+      },
+    });
+
+    if (!response.ok) {
+      const error = await response.text();
+
+      console.error("Google places details failed : ", response.status, error);
+
+      throw new Error("PLACE_DETAILS_FAILED");
+    }
+
+    const place = (await response.json()) as {
+      id: string;
+      displayName?: { text: string };
+      formattedAddress?: string;
+      location?: { latitude: number; longitude: number };
+    };
+
+    console.log("Place Details : " + JSON.stringify(place));
+
+    if (!place.location) {
+      throw new Error("PLACE_LOCATION_UNAVAILABLE");
+    }
+
+    return {
+      placeId: place.id,
+      name:
+        place.displayName?.text ?? place.formattedAddress ?? "Selected Place",
+      address: place.formattedAddress ?? "",
+      latitude: place.location.latitude,
+      longitude: place.location.longitude,
+    };
+  }
 }

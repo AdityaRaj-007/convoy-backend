@@ -26,7 +26,7 @@ export class PlacesController {
       sessionToken,
     );
 
-    return res.status(201).json({ success: true, data, error: null });
+    return res.status(200).json({ success: true, data, error: null });
   }
 
   async getPlaceDetails(
@@ -38,10 +38,14 @@ export class PlacesController {
         .status(401)
         .json({ success: false, data: null, error: "UNAUTHORIZED" });
     }
-    const { userId } = req.user;
 
-    const { placeId } = req.query;
+    const { placeId, sessionToken } = req.query;
 
-    const data = this.placesService.placeDetails(placeId);
+    const data = await this.placesService.placeDetails(
+      placeId.trim(),
+      sessionToken,
+    );
+
+    return res.status(200).json({ success: true, data, error: null });
   }
 }
