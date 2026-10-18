@@ -16,4 +16,5 @@ export const env = {
   refreshTokenExpiry: getEnv("REFRESH_TOKEN_EXPIRY"),
   redisHost: getEnv("REDIS_HOST"),
   redisPort: getEnv("REDIS_PORT"),
+  googleMapApiKey: getEnv("GOOGLE_MAP_API_KEY"),
 };
